@@ -1,24 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const knex = require('../db/knex');
-const mysql = require('mysql2');
+// const mysql = require('mysql2');
 
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'Ak_alvin0828',
-  database: 'todo_app'
-});
+// const connection = mysql.createConnection({
+//   host: 'localhost',
+//   user: 'root',
+//   password: 'Ak_alvin0828',
+//   database: 'todo_app'
+// });
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  const userId = req.session.userid;
-  const isAuth = Boolean(userId);
+
+  // const isAuth = Boolean(userId);
+  const isAuth = req.isAuthenticated();
   // console.log(`isAuth: ${isAuth}`);
 
-
-  knex('tasks')
+  if (isAuth) {
+    const userId = req.user.id;
+    knex('tasks')
     .select('*')
+    .where({user_id: userId})
     .then(function (results) {
       // console.log(results);
       res.render('index', {
@@ -32,8 +35,16 @@ router.get('/', function(req, res, next) {
       res.render('index', {
         title: 'Todo App',
         isAuth: isAuth,
+        errorMessage: [err.sqlMessage],
       });
     });
+
+  } else {
+    res.render('index', {
+      title: 'ToDo App',
+      isAuth: isAuth,
+    });
+  }
 
   // connection.query(
   //   `select * from tasks;`,
@@ -49,9 +60,11 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/', function(req, res, next) {
-  const userId = req.session.userid;
-  const isAuth = Boolean(userId);
+  const userId = req.user.id;
+  // const isAuth = Boolean(userId);
+  const isAuth = req.isAuthenticated();;
   const todo = req.body.add;
+
   knex('tasks')
     .insert({user_id: userId, content: todo})
     .then(function () {
@@ -62,6 +75,7 @@ router.post('/', function(req, res, next) {
       res.render('index', {
         title: 'ToDo App',
         isAuth: isAuth,
+        errorMessage: [err.sqlMessage],
       });
     });
 
