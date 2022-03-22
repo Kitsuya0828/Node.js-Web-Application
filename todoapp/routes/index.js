@@ -20,7 +20,7 @@ router.get('/', function(req, res, next) {
   knex('tasks')
     .select('*')
     .then(function (results) {
-      console.log(results);
+      // console.log(results);
       res.render('index', {
         title: 'ToDo App',
         todos: results,
